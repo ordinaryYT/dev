@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Subdomain</title>
+    <style>
+        body { font-family: Arial; max-width: 500px; margin: 40px auto; }
+        input, button { width: 100%; padding: 10px; margin-top: 10px; }
+        button { background: black; color: white; cursor: pointer; }
+        #result { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Create Your Custom Subdomain</h2>
+
+    <form id="subForm">
+        <input id="subdomain" placeholder="subdomain (e.g. john)" required />
+        <input id="target" placeholder="target host (e.g. example.net)" required />
+        <button type="submit">Create</button>
+    </form>
+
+    <p id="result"></p>
+
+    <script>
+        document.getElementById("subForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            const subdomain = document.getElementById("subdomain").value.trim();
+            const target = document.getElementById("target").value.trim();
+
+            const res = await fetch("/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subdomain, target })
+            });
+
+            const data = await res.json();
+            document.getElementById("result").innerText = data.message;
+        });
+    </script>
+</body>
+</html>
