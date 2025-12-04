@@ -1,40 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="scroll-smooth">
 <head>
-    <title>Create Subdomain</title>
-    <style>
-        body { font-family: Arial; max-width: 500px; margin: 40px auto; }
-        input, button { width: 100%; padding: 10px; margin-top: 10px; }
-        button { background: black; color: white; cursor: pointer; }
-        #result { margin-top: 20px; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ogdev.domains – Free Custom Subdomains</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-blitz { background: linear-gradient(135deg, #ff006e, #8338ec, #3a86ff); }
+    .glass { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); }
+  </style>
 </head>
-<body>
-    <h2>Create Your Custom Subdomain</h2>
+<body class="bg-gray-900 text-white min-h-screen">
 
-    <form id="subForm">
-        <input id="subdomain" placeholder="subdomain (e.g. john)" required />
-        <input id="target" placeholder="target host (e.g. example.net)" required />
-        <button type="submit">Create</button>
-    </form>
+  <!-- Hero -->
+  <section class="gradient-blitz min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div class="absolute inset-0 bg-black opacity-40"></div>
+    <div class="relative z-10 text-center px-6 max-w-4xl">
+      <h1 class="text-6xl md:text-8xl font-black mb-6 tracking-tighter">
+        OGDEV<span class="text-yellow-400">.domains</span>
+      </h1>
+      <p class="text-2xl md:text-4xl mb-10 opacity-90">Free custom subdomains for life</p>
+      
+      <!-- Search Bar – now with custom target input -->
+      <div class="max-w-3xl mx-auto space-y-6">
+        <div class="glass rounded-2xl p-6 flex items-center shadow-2xl">
+          <input type="text" id="subdomain" placeholder="yourname" 
+                 class="bg-transparent flex-1 text-3xl outline-none placeholder-gray-300 text-center">
+          <span class="text-4xl mx-4 text-yellow-400">.ogdev.qzz.io</span>
+        </div>
 
-    <p id="result"></p>
+        <div class="glass rounded-2xl p-6">
+          <p class="text-lg opacity-80 mb-3">Points to your site:</p>
+          <input type="text" id="target" placeholder="https://yoursite.vercel.app (or any URL)" 
+                 class="w-full bg-transparent text-xl text-center outline-none border-b-2 border-gray-500 pb-2">
+        </div>
 
-    <script>
-        document.getElementById("subForm").addEventListener("submit", async e => {
-            e.preventDefault();
-            const subdomain = document.getElementById("subdomain").value.trim();
-            const target = document.getElementById("target").value.trim();
+        <button onclick="register()" id="btn"
+                class="w-full py-6 text-2xl font-bold rounded-2xl bg-yellow-400 text-black hover:bg-yellow-300 transition">
+          Claim Free Forever
+        </button>
+      </div>
+      <p class="mt-8 text-lg opacity-70">Instant DNS • Proxied • No limits</p>
+    </div>
+  </section>
 
-            const res = await fetch("/create", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ subdomain, target })
-            });
+  <!-- Result -->
+  <div id="success" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 hidden">
+    <div class="glass rounded-3xl p-12 text-center max-w-2xl">
+      <h2 class="text-5xl font-black mb-6 text-green-400">Done!</h2>
+      <p class="text-3xl mb-8">Your subdomain is live:</p>
+      <a id="liveLink" target="_blank" class="text-5xl font-bold text-yellow-400 underline"></a>
+      <button onclick="document.getElementById('success').classList.add('hidden')" 
+              class="mt-10 px-12 py-4 bg-white/20 rounded-xl hover:bg-white/30 transition">
+        Close
+      </button>
+    </div>
+  </div>
 
-            const data = await res.json();
-            document.getElementById("result").innerText = data.message;
-        });
-    </script>
+  <script>
+    async function register() {
+      const sub = document.getElementById('subdomain').value.trim();
+      const target = document.getElementById('target').value.trim();
+      const btn = document.getElementById('btn');
+
+      if (!sub || !target) return alert("Fill both fields");
+
+      btn.disabled = true;
+      btn.textContent = "Creating DNS record...";
+
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subdomain: sub, target })
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        document.getElementById('liveLink').href = json.url;
+        document.getElementById('liveLink').textContent = json.url;
+        document.getElementById('success').classList.remove('hidden');
+      } else {
+        alert("Error: " + json.error);
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Claim Free Forever";
+    }
+
+    // Enter key support
+    document.addEventListener('keypress', e => e.key === 'Enter' && register());
+  </script>
 </body>
 </html>
