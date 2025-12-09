@@ -1,48 +1,59 @@
+require('dotenv').config();
 const express = require('express');
-const fetch = require('node-fetch');
+const path = require('path');
 const app = express();
+const PORT = 3000;
 
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const CF_TOKEN = process.env.CF_API_TOKEN;
-const CF_ZONE_ID = process.env.CF_ZONE_ID;
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-app.post('/api/register', async (req, res) => {
-  let { subdomain, target } = req.body;
+// Create subdomain → CNAME pointing to main domain
+app.post('/api/create', async (req, res) => {
+  let { name } = req.body;
+  name = name.trim().toLowerCase();
 
-  subdomain = subdomain.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
-  if (!subdomain || subdomain.length > 40) return res.json({ error: "Invalid subdomain name" });
+  if (!name || !/^[a-z0-9-]{1,30}$/.test(name)) {
+    return res.status(400).json({ error: "Only letters, numbers, and hyphens (max 30 chars)" });
+  }
 
-  target = target.replace(/^https?:\/\//, '').replace(/\/+$/, '').trim();
-  if (!target) return res.json({ error: "Enter a valid target URL" });
+  const fullDomain = `${name}.${process.env.MAIN_DOMAIN}`;
 
   try {
-    const resp = await fetch(`https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CF_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        type: "CNAME",
-        name: `${subdomain}.ogdev`,
-        content: target,
-        ttl: 300,
-        proxied: true
-      })
-    });
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE_ID}/dns_records`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.CLOUDFLARE_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: 'CNAME',
+          name: name,
+          content: process.env.MAIN_DOMAIN,
+          ttl: 300,
+          proxied: true
+        })
+      }
+    );
 
-    const data = await resp.json();
+    const data = await response.json();
+
     if (data.success) {
-      res.json({ success: true, url: `https://${subdomain}.ogdev.qzz.io` });
+      res.json({ success: true, domain: fullDomain });
     } else {
-      res.json({ error: data.errors?.[0]?.message || "Cloudflare error" });
+      const msg = data.errors?.[0]?.message || "Failed to create subdomain";
+      res.status(400).json({ error: msg });
     }
-  } catch (e) {
-    res.json({ error: "Server error" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-app.get('*', (req, res) => res.sendFile(__dirname + '/index.html'));
-app.listen(process.env.PORT || 3000, () => console.log('ogdev.domains running'));
+app.listen(PORT, () => {
+  console.log(`OGDEV is LIVE`);
+  console.log(`http://localhost:${PORT}`);
+  console.log(`Subdomains → anything.${process.env.MAIN_DOMAIN}`);
+});
