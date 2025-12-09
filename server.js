@@ -1,48 +1,27 @@
 require('dotenv').config();
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const multer = require('multer');
-
 const app = express();
 const PORT = 3000;
 
-// Create sites folder
-const SITES_DIR = path.join(__dirname, 'sites');
-if (!fs.existsSync(SITES_DIR)) fs.mkdirSync(SITES_DIR);
-
 app.use(express.json());
-app.use('/sites', express.static(SITES_DIR)); // ← This serves user content
+app.use(express.static(__dirname));
 
-// Serve main page
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
-// Create subdomain + DNS record
+// Create subdomain with custom target
 app.post('/api/create', async (req, res) => {
-  let { name } = req.body;
-  name = name.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  let { name, target } = req.body;
 
-  if (!name || name.length > 30) {
-    return res.status(400).json({ error: "Invalid name (1–30 chars, letters/numbers/hyphens only)" });
+  name = name.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  target = target.trim().replace(/https?:\/\//g, '').replace(/\/+$/, '');
+
+  if (!name || name.length > 40) return res.status(400).json({ error: "Invalid subdomain name" });
+  if (!target || !/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(target)) {
+    return res.status(400).json({ error: "Invalid target domain" });
   }
 
   const fullDomain = `${name}.${process.env.MAIN_DOMAIN}`;
-  const sitePath = path.join(SITES_DIR, name);
 
-  // Create default site if folder doesn't exist
-  if (!fs.existsSync(sitePath)) {
-    fs.mkdirSync(sitePath);
-    fs.writeFileSync(path.join(sitePath, 'index.html'), `
-      <!DOCTYPE html>
-      <html><head><title>${fullDomain}</title>
-      <style>body{font-family:system-ui;background:#0f0f23;color:#fff;text-align:center;padding:50px;}
-      h1{font-size:4rem;} p{font-size:1.5rem;}</style></head>
-      <body><h1>${fullDomain}</h1><p>You're live! Edit this page in your OGDEV dashboard.</p></body>
-      </html>
-    `);
-  }
-
-  // Create CNAME record
   try {
     const response = await fetch(
       `https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE_ID}/dns_records`,
@@ -55,7 +34,7 @@ app.post('/api/create', async (req, res) => {
         body: JSON.stringify({
           type: 'CNAME',
           name: name,
-          content: process.env.MAIN_DOMAIN,
+          content: target,
           ttl: 300,
           proxied: true
         })
@@ -65,34 +44,17 @@ app.post('/api/create', async (req, res) => {
     const data = await response.json();
 
     if (data.success || data.errors?.[0]?.code === 81057) { // 81057 = already exists
-      res.json({ success: true, domain: fullDomain });
+      res.json({ success: true, domain: fullDomain, target });
     } else {
-      res.status(400).json({ error: data.errors?.[0]?.message || "DNS failed" });
+      const msg = data.errors?.[0]?.message || "Failed";
+      res.status(400).json({ error: msg });
     }
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// Upload custom HTML (simple editor)
-const upload = multer();
-app.post('/api/upload/:name', upload.single('file'), (req, res) => {
-  const name = req.params.name.toLowerCase().replace(/[^a-z0-9-]/g, '');
-  const sitePath = path.join(SITES_DIR, name);
-
-  if (!fs.existsSync(sitePath)) {
-    return res.status(404).json({ error: "Subdomain not found" });
-  }
-
-  let html = req.body.html || (req.file ? req.file.buffer.toString() : '');
-  if (!html) return res.status(400).json({ error: "No content" });
-
-  fs.writeFileSync(path.join(sitePath, 'index.html'), html);
-  res.json({ success: true, domain: `${name}.${process.env.MAIN_DOMAIN}` });
-});
-
 app.listen(PORT, () => {
-  console.log(`OGDEV 2.0 Running`);
-  console.log(`→ http://localhost:${PORT}`);
-  console.log(`→ User sites: http://anything.${process.env.MAIN_DOMAIN}`);
+  console.log(`OGDEV Custom CNAME LIVE`);
+  console.log(`http://localhost:${PORT}`);
 });
