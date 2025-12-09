@@ -1,97 +1,123 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="h-full">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ogdev.domains – Free Custom Subdomains</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OGDEV – Free Instant Subdomains</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .gradient-blitz { background: linear-gradient(135deg, #ff006e, #8338ec, #3a86ff); }
-    .glass { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); }
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%); color: white; }
+    .glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }
+    .spinner { border: 4px solid #1e293b; border-top: 4px solid #60a5fa; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="min-h-screen flex items-center justify-center px-4">
 
-  <!-- Hero -->
-  <section class="gradient-blitz min-h-screen flex items-center justify-center relative overflow-hidden">
-    <div class="absolute inset-0 bg-black opacity-40"></div>
-    <div class="relative z-10 text-center px-6 max-w-4xl">
-      <h1 class="text-6xl md:text-8xl font-black mb-6 tracking-tighter">
-        OGDEV<span class="text-yellow-400">.domains</span>
+  <div class="max-w-4xl w-full">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-6xl md:text-8xl font-black tracking-tighter">
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">OGDEV</span>
       </h1>
-      <p class="text-2xl md:text-4xl mb-10 opacity-90">Free custom subdomains for life</p>
-      
-      <!-- Search Bar – now with custom target input -->
-      <div class="max-w-3xl mx-auto space-y-6">
-        <div class="glass rounded-2xl p-6 flex items-center shadow-2xl">
-          <input type="text" id="subdomain" placeholder="yourname" 
-                 class="bg-transparent flex-1 text-3xl outline-none placeholder-gray-300 text-center">
-          <span class="text-4xl mx-4 text-yellow-400">.ogdev.qzz.io</span>
+      <p class="text-2xl md:text-3xl mt-4 text-gray-300">Free instant subdomains for developers</p>
+      <p class="text-lg text-gray-400 mt-2">Claim yours in 3 seconds – no signup, no limits</p>
+    </div>
+
+    <!-- Main Card -->
+    <div class="backdrop-blur-xl bg-white/10 rounded-3xl p-10 md:p-16 glow border border-white/20">
+      <div class="text-center">
+        <div class="flex items-center justify-center gap-4 mb-10">
+          <input 
+            type="text" 
+            id="name" 
+            placeholder="myproject" 
+            class="bg-white/10 border border-white/30 rounded-2xl px-8 py-6 text-4xl md:text-5xl font-bold text-center text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition w-full max-w-md"
+            autocomplete="off"
+          >
+          <span class="text-4xl md:text-5xl font-black text-gray-300">.ogdev.link</span>
         </div>
 
-        <div class="glass rounded-2xl p-6">
-          <p class="text-lg opacity-80 mb-3">Points to your site:</p>
-          <input type="text" id="target" placeholder="https://yoursite.vercel.app (or any URL)" 
-                 class="w-full bg-transparent text-xl text-center outline-none border-b-2 border-gray-500 pb-2">
-        </div>
-
-        <button onclick="register()" id="btn"
-                class="w-full py-6 text-2xl font-bold rounded-2xl bg-yellow-400 text-black hover:bg-yellow-300 transition">
-          Claim Free Forever
+        <button 
+          onclick="createDomain()" 
+          class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold text-2xl px-16 py-6 rounded-2xl transition transform hover:scale-105 active:scale-95 shadow-2xl">
+          Claim My Domain
         </button>
-      </div>
-      <p class="mt-8 text-lg opacity-70">Instant DNS • Proxied • No limits</p>
-    </div>
-  </section>
 
-  <!-- Result -->
-  <div id="success" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 hidden">
-    <div class="glass rounded-3xl p-12 text-center max-w-2xl">
-      <h2 class="text-5xl font-black mb-6 text-green-400">Done!</h2>
-      <p class="text-3xl mb-8">Your subdomain is live:</p>
-      <a id="liveLink" target="_blank" class="text-5xl font-bold text-yellow-400 underline"></a>
-      <button onclick="document.getElementById('success').classList.add('hidden')" 
-              class="mt-10 px-12 py-4 bg-white/20 rounded-xl hover:bg-white/30 transition">
-        Close
-      </button>
+        <div id="result" class="mt-10 text-lg"></div>
+        <div id="loading" class="hidden mt-8 flex justify-center">
+          <div class="spinner"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- Features -->
+    <div class="grid md:grid-cols-3 gap-8 mt-16 text-center">
+      <div class="bg-white/5 backdrop-blur rounded-2xl p-8 border border-white/10">
+        <i class="fas fa-bolt text-5xl text-yellow-400 mb-4"></i>
+        <h3 class="text-2xl font-bold">Instant</h3>
+        <p class="text-gray-400">Live in under 5 seconds</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur rounded-2xl p-8 border border-white/10">
+        <i class="fas fa-shield-alt text-5xl text-green-400 mb-4"></i>
+        <h3 class="text-2xl font-bold">Free SSL</h3>
+        <p class="text-gray-400">Cloudflare-powered HTTPS</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur rounded-2xl p-8 border border-white/10">
+        <i class="fas fa-infinity text-5xl text-purple-400 mb-4"></i>
+        <h3 class="text-2xl font-bold">No Limits</h3>
+        <p class="text-gray-400">As many as you want</p>
+      </div>
+    </div>
+
+    <p class="text-center text-gray-500 mt-16 text-sm">
+      Made with love for the indie hacker community
+    </p>
   </div>
 
   <script>
-    async function register() {
-      const sub = document.getElementById('subdomain').value.trim();
-      const target = document.getElementById('target').value.trim();
-      const btn = document.getElementById('btn');
+    async function createDomain() {
+      const input = document.getElementById('name');
+      const result = document.getElementById('result');
+      const loading = document.getElementById('loading');
+      let name = input.value.trim().toLowerCase();
 
-      if (!sub || !target) return alert("Fill both fields");
-
-      btn.disabled = true;
-      btn.textContent = "Creating DNS record...";
-
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: sub, target })
-      });
-
-      const json = await res.json();
-
-      if (json.success) {
-        document.getElementById('liveLink').href = json.url;
-        document.getElementById('liveLink').textContent = json.url;
-        document.getElementById('success').classList.remove('hidden');
-      } else {
-        alert("Error: " + json.error);
+      if (!name || !/^[a-z0-9-]{1,30}$/.test(name)) {
+        result.innerHTML = `<p class="text-red-400 text-xl">Invalid name! Use only letters, numbers, hyphens (max 30 chars)</p>`;
+        return;
       }
 
-      btn.disabled = false;
-      btn.textContent = "Claim Free Forever";
+      result.innerHTML = '';
+      loading.classList.remove('hidden');
+
+      const res = await fetch('/api/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+
+      const data = await res.json();
+      loading.classList.add('hidden');
+
+      if (data.success) {
+        result.innerHTML = `
+          <div class="text-green-400 text-3xl font-bold mb-4">Success!</div>
+          <div class="text-5xl md:text-6xl font-black text-white mb-6">${data.domain}</div>
+          <p class="text-xl text-gray-300">Your domain is live! Point your app to it now.</p>
+          <p class="mt-6 text-sm text-gray-400">It may take up to 60 seconds to propagate</p>
+        `;
+        input.value = '';
+      } else {
+        result.innerHTML = `<p class="text-red-400 text-xl">Error: ${data.error}</p>`;
+      }
     }
 
-    // Enter key support
-    document.addEventListener('keypress', e => e.key === 'Enter' && register());
+    // Allow Enter key
+    document.getElementById('name').addEventListener('keypress', e => {
+      if (e.key === 'Enter') createDomain();
+    });
   </script>
 </body>
 </html>
