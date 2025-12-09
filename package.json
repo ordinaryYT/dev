@@ -1,18 +1,11 @@
 {
-  "name": "ogdev-domains",
- "version": "1.0.0",
-  "description": "Free custom subdomains for ogdev.qzz.io – instant CNAME creation via Cloudflare",
+  "name": "ogdev",
+  "version": "1.0.0",
+  "description": "OGDEV – Free Instant Subdomains",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "author": "",
-  "license": "MIT",
+  "scripts": { "start": "node server.js" },
   "dependencies": {
-    "express": "^4.21.1",
-    "node-fetch": "^3.3.2"
-  },
-  "engines": {
-    "node": ">=18.x"
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5"
   }
 }
